@@ -9,7 +9,6 @@ import com.inventario.repository.WarehouseRepository;
 
 import java.sql.Connection;
 import java.sql.Timestamp;
-import java.time.OffsetDateTime;
 
 public class WarehouseService {
   private final WarehouseRepository repo = new WarehouseRepository();
@@ -22,7 +21,7 @@ public class WarehouseService {
 
       Warehouse w = WarehouseMapper.toModel(req);
 
-      w.setCreatedAt(Timestamp.from(OffsetDateTime.now().toInstant()));
+      w.setCreatedAt(new Timestamp(System.currentTimeMillis()));
       w.setId(repo.insert(c, w));
 
       c.commit();
