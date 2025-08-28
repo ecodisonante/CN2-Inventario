@@ -4,7 +4,10 @@ import com.inventario.dto.WarehouseRequest;
 import com.inventario.dto.WarehouseResponse;
 import com.inventario.model.Warehouse;
 
+import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class WarehouseMapper {
 
     public static WarehouseResponse toResponse(Warehouse w) {
