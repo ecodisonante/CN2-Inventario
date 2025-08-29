@@ -57,6 +57,23 @@ public class WarehouseService {
     }
   }
 
+  public WarehouseResponse update(long id, WarehouseRequest req) throws Exception {
+    validate(req);
+
+    try (Connection c = Db.open()) {
+      c.setAutoCommit(false);
+
+      Warehouse w = WarehouseMapper.toModel(req);
+      w.setId(id);
+
+      repo.update(c, id, w);
+
+      c.commit();
+
+      // Obtener el registro actualizado para retornar
+      return WarehouseMapper.toResponse(repo.findById(c, id));
+    }
+  }
 
   private void validate(WarehouseRequest req) {
     if (req == null || req.name() == null || req.name().isBlank())

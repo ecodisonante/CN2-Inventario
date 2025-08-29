@@ -77,6 +77,21 @@ public class WarehouseRepository {
     }
   }
 
+  public void update(Connection c, long id, Warehouse w) throws SQLException {
+    String sql = """
+        UPDATE WAREHOUSES
+        SET NAME = ?, LOCATION = ?, ENABLED = ?
+        WHERE ID = ?
+        """;
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+      ps.setString(1, w.getName());
+      ps.setString(2, w.getLocation());
+      ps.setString(3, w.getEnabled());
+      ps.setLong(4, id);
+      ps.executeUpdate();
+    }
+  }
+
   private Warehouse map(ResultSet rs) throws Exception {
     Warehouse w = new Warehouse();
     w.setId(rs.getLong("ID"));
