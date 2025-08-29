@@ -3,6 +3,8 @@ package com.inventario.repository;
 import com.inventario.model.Warehouse;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WarehouseRepository {
 
@@ -19,7 +21,7 @@ public class WarehouseRepository {
       ps.setTimestamp(4, w.getCreatedAt());
 
       ps.executeUpdate();
-      
+
       try (ResultSet rs = ps.getGeneratedKeys()) {
         if (rs.next())
           return rs.getLong(1);
@@ -28,7 +30,7 @@ public class WarehouseRepository {
     }
   }
 
-  public Warehouse findById(Connection c, long id) throws SQLException {
+  public Warehouse findById(Connection c, long id) throws Exception {
     String sql = """
         SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
         FROM WAREHOUSES WHERE ID = ?
@@ -39,18 +41,41 @@ public class WarehouseRepository {
       try (ResultSet rs = ps.executeQuery()) {
 
         if (rs.next()) {
-          Warehouse w = new Warehouse();
-          w.setId(rs.getLong("ID"));
-          w.setName(rs.getString("NAME"));
-          w.setLocation(rs.getString("LOCATION"));
-          w.setEnabled(rs.getString("ENABLED"));
-          w.setCreatedAt(rs.getTimestamp("CREATED_AT"));
-
-          return w;
+          return map(rs);
         }
 
         return null;
       }
     }
+  }
+
+  public List<Warehouse> findAll(Connection c) throws Exception {
+    String sql = """
+        SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
+        FROM WAREHOUSES ORDER BY ID
+        """;
+
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+      try (ResultSet rs = ps.executeQuery()) {
+
+        List<Warehouse> out = new ArrayList<>();
+
+        while (rs.next()) {
+          out.add(map(rs));
+        }
+
+        return out;
+      }
+    }
+  }
+
+  private Warehouse map(ResultSet rs) throws Exception {
+    Warehouse w = new Warehouse();
+    w.setId(rs.getLong("ID"));
+    w.setName(rs.getString("NAME"));
+    w.setLocation(rs.getString("LOCATION"));
+    w.setEnabled(rs.getString("ENABLED"));
+    w.setCreatedAt(rs.getTimestamp("CREATED_AT"));
+    return w;
   }
 }
