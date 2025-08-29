@@ -9,6 +9,7 @@ import com.inventario.repository.WarehouseRepository;
 
 import java.sql.Connection;
 import java.sql.Timestamp;
+import java.util.List;
 
 public class WarehouseService {
   private final WarehouseRepository repo = new WarehouseRepository();
@@ -29,7 +30,22 @@ public class WarehouseService {
       return WarehouseMapper.toResponse(w);
     }
   }
-  
+
+  public List<WarehouseResponse> getAll() throws Exception {
+    try (Connection c = Db.open()) {
+      List<Warehouse> result = repo.findAll(c);
+
+      return result.stream()
+          .map(WarehouseMapper::toResponse)
+          .toList();
+    }
+  }
+
+  public WarehouseResponse getById(long id) throws Exception {
+    try (Connection c = Db.open()) {
+      return WarehouseMapper.toResponse(repo.findById(c, id));
+    }
+  }
 
   private void validate(WarehouseRequest req) {
     if (req == null || req.name() == null || req.name().isBlank())
