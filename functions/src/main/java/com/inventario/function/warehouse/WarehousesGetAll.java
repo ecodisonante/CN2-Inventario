@@ -1,6 +1,6 @@
-package com.inventario.function;
+// function/WarehousesReadAll.java
+package com.inventario.function.warehouse;
 
-import com.inventario.dto.WarehouseRequest;
 import com.inventario.service.WarehouseService;
 import com.inventario.util.Json;
 import com.microsoft.azure.functions.*;
@@ -8,28 +8,25 @@ import com.microsoft.azure.functions.annotation.*;
 
 import java.util.Optional;
 
-public class WarehousesCreate {
+public class WarehousesGetAll {
   private final WarehouseService service = new WarehouseService();
 
-  @FunctionName("warehouses-create")
+  @FunctionName("warehouses-get-all")
   public HttpResponseMessage handle(
       @HttpTrigger(name = "req", methods = {
-          HttpMethod.POST }, route = "warehouses", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+          HttpMethod.GET }, route = "warehouses", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
       final ExecutionContext ctx) {
 
     try {
-      String body = request.getBody().orElse("");
-      WarehouseRequest dto = Json.read(body, WarehouseRequest.class);
+      var result = service.getAll();
 
-      var created = service.create(dto);
-
-      return request.createResponseBuilder(HttpStatus.CREATED)
+      return request.createResponseBuilder(HttpStatus.OK)
           .header("Content-Type", "application/json")
-          .body(Json.write(created))
+          .body(Json.write(result))
           .build();
 
     } catch (Exception e) {
-      ctx.getLogger().severe("Error al crear bodega: " + e.getMessage() + "\n" + e.getStackTrace());
+      ctx.getLogger().severe("Error al listar bodegas: " + e.getMessage() + "\n" + e.getStackTrace());
       return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
           .header("Content-Type", "application/json")
           .body("{\"error\":\"" + e.getMessage() + "\"}")
