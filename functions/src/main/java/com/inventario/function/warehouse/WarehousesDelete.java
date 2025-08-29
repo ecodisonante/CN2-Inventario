@@ -1,4 +1,4 @@
-package com.inventario.function;
+package com.inventario.function.warehouse;
 
 import com.inventario.service.WarehouseService;
 import com.microsoft.azure.functions.*;
