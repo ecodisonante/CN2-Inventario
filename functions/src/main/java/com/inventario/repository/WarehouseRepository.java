@@ -69,6 +69,14 @@ public class WarehouseRepository {
     }
   }
 
+  public void delete(Connection c, long id) throws SQLException {
+    String sql = "DELETE FROM WAREHOUSES WHERE ID = ?";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+      ps.setLong(1, id);
+      ps.executeUpdate();
+    }
+  }
+
   private Warehouse map(ResultSet rs) throws Exception {
     Warehouse w = new Warehouse();
     w.setId(rs.getLong("ID"));

@@ -47,6 +47,17 @@ public class WarehouseService {
     }
   }
 
+  public void delete(long id) throws Exception {
+    try (Connection c = Db.open()) {
+      c.setAutoCommit(false);
+
+      repo.delete(c, id);
+
+      c.commit();
+    }
+  }
+
+
   private void validate(WarehouseRequest req) {
     if (req == null || req.name() == null || req.name().isBlank())
       throw new IllegalArgumentException("name is required");
