@@ -39,8 +39,7 @@ jobs:
             --tag $DOCKER_IMAGE_NAME:${TAG} \
             --tag $DOCKER_IMAGE_NAME:latest \
             bff
-            .
-
+            
       # 4. Subir la imagen a Docker Hub
       - name: Push Docker image
         run: |
