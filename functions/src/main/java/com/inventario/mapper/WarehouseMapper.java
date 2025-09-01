@@ -1,7 +1,5 @@
 package com.inventario.mapper;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import com.inventario.dto.WarehouseRequest;
@@ -34,8 +32,6 @@ public final class WarehouseMapper {
         w.setName(req.name());
         w.setLocation(req.location());
         w.setEnabled((req.enabled() == null || req.enabled().isBlank()) ? "S" : req.enabled());
-        if (req.id() != null)
-            w.setId(req.id());
         return w;
     }
 }

@@ -1,0 +1,82 @@
+name: BFF Pipeline
+
+on:
+  push:
+    tags:
+      # Se activa con tags semánticos
+      - 'bff-v*.*.*'
+  workflow_dispatch:
+
+env:
+  DOCKER_IMAGE_NAME: ecodisonante/cn2-inventario-bff
+
+jobs:
+  build-and-deploy-bff:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout del repositorio
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configurar `TAG` en el entorno
+      - name: Set TAG from GitHub ref
+        run: echo "TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')" >> $GITHUB_ENV
+      
+      # 3. Configurar acceso a Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      # 4. Construir la imagen Docker
+      - name: Build Docker image (BFF)
+        run: |
+          docker build \
+            --file ./bff/Dockerfile \
+            --build-arg API_WAREHOUSES_URL=https://cn2-inventario.azurewebsites.net/api/warehouses \
+            --build-arg API_PRODUCTS_URL=https://cn2-inventario.azurewebsites.net/api/products \
+            --tag $DOCKER_IMAGE_NAME:${TAG} \
+            --tag $DOCKER_IMAGE_NAME:latest \
+            bff
+            
+      # 4. Subir la imagen a Docker Hub
+      - name: Push Docker image
+        run: |
+          docker push $DOCKER_IMAGE_NAME:${TAG}
+          docker push $DOCKER_IMAGE_NAME:latest
+
+       # 5. Despliegue en el servidor AWS
+      - name: Deploy to AWS Server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.AWS_SERVER_IP }}
+          username: ${{ secrets.AWS_SERVER_USER }}
+          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          port: 22
+          envs: DOCKER_IMAGE_NAME,TAG
+          script: |
+            # Asegurar que existe red
+            sudo docker network inspect app-network >/dev/null 2>&1 || sudo docker network create app-network
+
+            # Pull nueva imagen
+            sudo docker pull $DOCKER_IMAGE_NAME:${TAG}
+
+            # Restart contenedor
+            if [ "$(sudo docker ps -aq -f name=bff)" ]; then
+              echo "Eliminando el antiguo contenedor 'bff'..."
+              sudo docker rm -f bff
+            else
+              echo "El contenedor 'bff' no existe, continuando..."
+            fi
+
+            # Ejecutar el nuevo contenedor
+            sudo docker run -d --name bff \
+              --network app-network \
+              -p 8080:8080 \
+              -e "cors.allowed-origins=${{ secrets.CORS_ALLOWED_ORIGINS }}" \
+              -e "server.port=8080" \
+              -e "spring.application.name=bff" \
+              -e "api.warehouses=https://cn2-inventario.azurewebsites.net/api/warehouses" \
+              -e "api.products=https://cn2-inventario.azurewebsites.net/api/products" \
+              "$DOCKER_IMAGE_NAME:${TAG}"
