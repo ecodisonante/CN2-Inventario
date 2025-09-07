@@ -30,7 +30,7 @@ public class WarehouseRepository {
     }
   }
 
-  public Warehouse findById(Connection c, long id) throws Exception {
+  public Warehouse findById(Connection c, long id) throws SQLException {
     String sql = """
         SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
         FROM WAREHOUSES WHERE ID = ?
@@ -49,7 +49,7 @@ public class WarehouseRepository {
     }
   }
 
-  public List<Warehouse> findAll(Connection c) throws Exception {
+  public List<Warehouse> findAll(Connection c) throws SQLException {
     String sql = """
         SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
         FROM WAREHOUSES ORDER BY ID
@@ -92,7 +92,7 @@ public class WarehouseRepository {
     }
   }
 
-  private Warehouse map(ResultSet rs) throws Exception {
+  private Warehouse map(ResultSet rs) throws SQLException {
     Warehouse w = new Warehouse();
     w.setId(rs.getLong("ID"));
     w.setName(rs.getString("NAME"));
