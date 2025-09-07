@@ -8,13 +8,14 @@ import com.inventario.repository.Db;
 import com.inventario.repository.WarehouseRepository;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
 public class WarehouseService {
   private final WarehouseRepository repo = new WarehouseRepository();
 
-  public WarehouseResponse create(WarehouseRequest req) throws Exception {
+  public WarehouseResponse create(WarehouseRequest req) throws SQLException {
     validate(req);
 
     try (Connection c = Db.open()) {
@@ -31,7 +32,13 @@ public class WarehouseService {
     }
   }
 
-  public List<WarehouseResponse> getAll() throws Exception {
+  public WarehouseResponse getById(long id) throws SQLException {
+    try (Connection c = Db.open()) {
+      return WarehouseMapper.toResponse(repo.findById(c, id));
+    }
+  }
+
+  public List<WarehouseResponse> getAll() throws SQLException {
     try (Connection c = Db.open()) {
       List<Warehouse> result = repo.findAll(c);
 
@@ -41,23 +48,7 @@ public class WarehouseService {
     }
   }
 
-  public WarehouseResponse getById(long id) throws Exception {
-    try (Connection c = Db.open()) {
-      return WarehouseMapper.toResponse(repo.findById(c, id));
-    }
-  }
-
-  public void delete(long id) throws Exception {
-    try (Connection c = Db.open()) {
-      c.setAutoCommit(false);
-
-      repo.delete(c, id);
-
-      c.commit();
-    }
-  }
-
-  public WarehouseResponse update(long id, WarehouseRequest req) throws Exception {
+  public WarehouseResponse update(long id, WarehouseRequest req) throws SQLException {
     validate(req);
 
     try (Connection c = Db.open()) {
@@ -72,6 +63,16 @@ public class WarehouseService {
 
       // Obtener el registro actualizado para retornar
       return WarehouseMapper.toResponse(repo.findById(c, id));
+    }
+  }
+
+  public void delete(long id) throws SQLException {
+    try (Connection c = Db.open()) {
+      c.setAutoCommit(false);
+
+      repo.delete(c, id);
+
+      c.commit();
     }
   }
 

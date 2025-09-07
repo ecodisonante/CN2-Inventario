@@ -5,6 +5,7 @@ import oracle.jdbc.pool.OracleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import lombok.NoArgsConstructor;
 import lombok.AccessLevel;
@@ -14,7 +15,7 @@ public final class Db {
 
     private static volatile DataSource ds;
 
-    private static DataSource build() throws Exception {
+    private static DataSource build() throws SQLException {
         System.setProperty("oracle.net.tns_admin", AppConfig.tnsAdmin());
         OracleDataSource ods = new OracleDataSource();
         ods.setURL("jdbc:oracle:thin:@" + AppConfig.alias());
@@ -23,7 +24,7 @@ public final class Db {
         return ods;
     }
 
-    public static DataSource dataSource() throws Exception {
+    public static DataSource dataSource() throws SQLException {
         if (ds == null) {
             synchronized (Db.class) {
                 if (ds == null)
@@ -33,7 +34,7 @@ public final class Db {
         return ds;
     }
 
-    public static Connection open() throws Exception {
+    public static Connection open() throws SQLException {
         return dataSource().getConnection();
     }
 }
