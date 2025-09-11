@@ -8,21 +8,51 @@ import java.util.List;
 
 public class StockRepository {
 
-  public void insert(Connection c, Stock s) throws SQLException {
-    String sql = """
-        INSERT INTO STOCKS (PRODUCT_ID, WAREHOUSE_ID, ON_HAND, RESERVED, UPDATED_AT)
-        VALUES (?, ?, ?, ?, ?)
+  public Stock receive(Connection conn, long productId, long warehouseId, int qty, String reference)
+      throws SQLException {
+
+    // Insertar movimiento
+    String query = """
+        INSERT INTO STOCK_MOVEMENTS (PRODUCT_ID, WAREHOUSE_ID, MOV_TYPE_ID, QTY, REFERENCE, CREATED_AT)
+        VALUES (?, ?, ?, ?, ?, ?)
         """;
 
-    try (PreparedStatement ps = c.prepareStatement(sql)) {
-      ps.setLong(1, s.getProductId());
-      ps.setLong(2, s.getWarehouseId());
-      ps.setInt(3, s.getOnHand());
-      ps.setInt(4, s.getReserved());
-      ps.setTimestamp(5, s.getUpdatedAt());
+    try (PreparedStatement ps = conn.prepareStatement(query)) {
+
+      ps.setLong(1, productId);
+      ps.setLong(2, warehouseId);
+      ps.setInt(3, 1); // MOVEMENT_TYPE = RECEIVE
+      ps.setInt(4, qty);
+      ps.setString(5, reference);
+      ps.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
 
       ps.executeUpdate();
     }
+
+    // Actualizar stock (UPSERT)
+    String sql = """
+          MERGE INTO STOCKS s
+          USING (SELECT ? AS PRODUCT_ID, ? AS WAREHOUSE_ID FROM dual) i
+             ON (s.PRODUCT_ID = i.PRODUCT_ID AND s.WAREHOUSE_ID = i.WAREHOUSE_ID)
+          WHEN MATCHED THEN
+            UPDATE SET s.ON_HAND = s.ON_HAND + ?, s.UPDATED_AT = SYSTIMESTAMP
+          WHEN NOT MATCHED THEN
+            INSERT (PRODUCT_ID, WAREHOUSE_ID, ON_HAND, RESERVED, UPDATED_AT)
+            VALUES (i.PRODUCT_ID, i.WAREHOUSE_ID, ?, 0, SYSTIMESTAMP)
+        """;
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setLong(1, productId);
+      ps.setLong(2, warehouseId);
+      ps.setInt(3, qty); // suma qty en caso de UPDATE
+      ps.setInt(4, qty); // valor unico en caso de INSERT
+      ps.executeUpdate();
+    }
+
+    // Devolver stock actualizado
+    var result = findPaged(conn, productId, warehouseId, 1, 0).get(0);
+
+    return result;
   }
 
   // Filtrado opcional por producto y/o bodega con paginación

@@ -34,9 +34,13 @@ type Stock {
 }
 
 
-# ---------- Consultas mínimas para la entrega ----------
+# ---------- Consultas y Mutaciones ----------
 type Query {
   # stock por producto o bodega - limita la cantidad de registros
   stock(productId: ID, warehouseId: ID, limit: Int = 20, offset: Int = 0): [Stock!]!
   
+}
+
+type Mutation {
+  receiveStock(productId: ID!, warehouseId: ID!, qty: Int!, reference: String): Stock!
 }

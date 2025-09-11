@@ -53,10 +53,22 @@ public class GraphQLProvider {
       return loader.load(sr.warehouseId());
     };
 
+    // --- MUTACIONES ---
+
+    // receiveStock(productId: ID!, warehouseId: ID!, qty: Int!, reference
+    DataFetcher<?> receiveStock = env -> {
+      Long productId = env.containsArgument("productId") ? Long.valueOf(env.getArgument("productId")) : null;
+      Long warehouseId = env.containsArgument("warehouseId") ? Long.valueOf(env.getArgument("warehouseId")) : null;
+      Integer qty = env.getArgument("qty");
+      String reference = env.getArgument("reference");
+
+      return stockSrv.receive(productId, warehouseId, qty, reference);
+    };
+
     // Wiring
     var wiring = RuntimeWiring.newRuntimeWiring()
-        .type("Query", b -> b
-            .dataFetcher("stock", stock))
+        .type("Query", b -> b.dataFetcher("stock", stock))
+        .type("Mutation", b -> b.dataFetcher("receiveStock", receiveStock))
         .type("Stock", b -> b
             .dataFetcher("product", productFetcher)
             .dataFetcher("warehouse", warehouseFetcher))

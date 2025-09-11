@@ -9,26 +9,35 @@ import com.inventario.repository.StockRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.List;
 
 public class StockService {
   private final StockRepository repo = new StockRepository();
 
-  public StockResponse create(StockRequest req) throws SQLException {
+  public StockResponse receive(Long productId, Long warehouseId, Integer onHand, String reference) throws SQLException {
+
+    StockRequest req = new StockRequest(
+        productId,
+        warehouseId,
+        onHand,
+        0);
+
     validate(req);
 
     try (Connection c = Db.open()) {
       c.setAutoCommit(false);
 
-      Stock p = StockMapper.toModel(req);
+      try {
 
-      p.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-      repo.insert(c, p);
+        var stock = repo.receive(c, productId, warehouseId, onHand, reference);
 
-      c.commit();
+        c.commit();
+        return StockMapper.toResponse(stock);
 
-      return StockMapper.toResponse(p);
+      } catch (SQLException e) {
+        c.rollback();
+        throw e;
+      }
     }
   }
 
