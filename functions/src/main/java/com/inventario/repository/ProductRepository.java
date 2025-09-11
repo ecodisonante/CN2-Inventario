@@ -33,7 +33,7 @@ public class ProductRepository {
     }
   }
 
-  public Product findById(Connection c, long id) throws SQLException{
+  public Product findById(Connection c, long id) throws SQLException {
     String sql = """
         SELECT ID, SKU, NAME, CATEGORY, PRICE, ENABLED, WAREHOUSE_ID, CREATED_AT
         FROM PRODUCTS WHERE ID = ?
@@ -49,6 +49,30 @@ public class ProductRepository {
     }
   }
 
+  public List<Product> findByIds(Connection conn, List<Long> ids) throws SQLException {
+    if (ids == null || ids.isEmpty())
+      return List.of();
+
+    // generar query con placeholders
+    String placeholders = String.join(", ", ids.stream().map(i -> "?").toList());
+    String q = "SELECT ID, SKU, NAME, CATEGORY, PRICE, ENABLED, WAREHOUSE_ID, CREATED_AT FROM PRODUCTS WHERE ID IN ("
+        + placeholders + ")";
+
+    try (PreparedStatement ps = conn.prepareStatement(q)) {
+      int idx = 1;
+
+      // setear valores de los placeholders
+      for (Long id : ids)
+        ps.setLong(idx++, id);
+
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Product> out = new ArrayList<>();
+        while (rs.next())
+          out.add(map(rs));
+        return out;
+      }
+    }
+  }
 
   public List<Product> findAll(Connection c) throws SQLException {
     String sql = """
@@ -70,43 +94,43 @@ public class ProductRepository {
     }
   }
 
-
   public Product update(Connection conn, Product p) throws SQLException {
 
     String query = """
-            UPDATE PRODUCTS SET
-            sku=?,
-            name=?,
-            category=?,
-            price=?,
-            enabled=?,
-            warehouse_id=?
-            WHERE id=?
-            """;
+        UPDATE PRODUCTS SET
+        sku=?,
+        name=?,
+        category=?,
+        price=?,
+        enabled=?,
+        warehouse_id=?
+        WHERE id=?
+        """;
 
     try (PreparedStatement ps = conn.prepareStatement(query)) {
-        ps.setString(1, p.getSku());
-        ps.setString(2, p.getName());
-        ps.setString(3, p.getCategory());
-        ps.setBigDecimal(4, p.getPrice());
-        ps.setString(5, p.getEnabled());
-        ps.setLong(6, p.getWarehouseId());
-        ps.setLong(7, p.getId());
+      ps.setString(1, p.getSku());
+      ps.setString(2, p.getName());
+      ps.setString(3, p.getCategory());
+      ps.setBigDecimal(4, p.getPrice());
+      ps.setString(5, p.getEnabled());
+      ps.setLong(6, p.getWarehouseId());
+      ps.setLong(7, p.getId());
 
-        int rows = ps.executeUpdate();
-        return rows > 0 ? p : null;
+      int rows = ps.executeUpdate();
+      return rows > 0 ? p : null;
     }
-}
+  }
 
-public int delete(Connection conn, Long id) throws SQLException {
+  public int delete(Connection conn, Long id) throws SQLException {
 
     String query = "DELETE FROM PRODUCTS WHERE id=?";
 
     try (PreparedStatement ps = conn.prepareStatement(query)) {
-        ps.setLong(1, id);
-        return ps.executeUpdate();
+      ps.setLong(1, id);
+      return ps.executeUpdate();
     }
-}
+  }
+
   private Product map(ResultSet rs) throws SQLException {
     Product p = new Product();
     p.setId(rs.getLong("ID"));

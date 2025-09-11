@@ -39,6 +39,14 @@ public class ProductService {
     }
   }
 
+  public List<ProductResponse> findByIds(List<Long> ids) throws SQLException {
+    try (Connection c = Db.open()) {
+      return repo.findByIds(c, ids).stream()
+          .map(ProductMapper::toResponse)
+          .toList();
+    }
+  }
+
   public List<ProductResponse> getAll() throws SQLException {
     try (Connection c = Db.open()) {
       List<Product> result = repo.findAll(c);
