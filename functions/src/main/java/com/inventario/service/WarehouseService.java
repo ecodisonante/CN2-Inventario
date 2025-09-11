@@ -38,6 +38,14 @@ public class WarehouseService {
     }
   }
 
+  public List<WarehouseResponse> findByIds(List<Long> ids) throws SQLException {
+    try (Connection c = Db.open()) {
+      return repo.findByIds(c, ids).stream()
+          .map(WarehouseMapper::toResponse)
+          .toList();
+    }
+  }
+
   public List<WarehouseResponse> getAll() throws SQLException {
     try (Connection c = Db.open()) {
       List<Warehouse> result = repo.findAll(c);
