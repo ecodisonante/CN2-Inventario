@@ -34,8 +34,7 @@ jobs:
         run: |
           docker build \
             --file ./bff/Dockerfile \
-            --build-arg API_WAREHOUSES_URL=https://cn2-inventario.azurewebsites.net/api/warehouses \
-            --build-arg API_PRODUCTS_URL=https://cn2-inventario.azurewebsites.net/api/products \
+            --build-arg AZURE_FUNCTIONS_URL=https://cn2-inventario.azurewebsites.net \
             --tag $DOCKER_IMAGE_NAME:${TAG} \
             --tag $DOCKER_IMAGE_NAME:latest \
             bff
@@ -77,6 +76,5 @@ jobs:
               -e "cors.allowed-origins=${{ secrets.CORS_ALLOWED_ORIGINS }}" \
               -e "server.port=8080" \
               -e "spring.application.name=bff" \
-              -e "api.warehouses=https://cn2-inventario.azurewebsites.net/api/warehouses" \
-              -e "api.products=https://cn2-inventario.azurewebsites.net/api/products" \
+              -e "azure.functions.url=https://cn2-inventario.azurewebsites.net" \
               "$DOCKER_IMAGE_NAME:${TAG}"
