@@ -30,7 +30,7 @@ public class WarehouseRepository {
     }
   }
 
-  public Warehouse findById(Connection c, long id) throws Exception {
+  public Warehouse findById(Connection c, long id) throws SQLException {
     String sql = """
         SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
         FROM WAREHOUSES WHERE ID = ?
@@ -49,7 +49,32 @@ public class WarehouseRepository {
     }
   }
 
-  public List<Warehouse> findAll(Connection c) throws Exception {
+  public List<Warehouse> findByIds(Connection conn, List<Long> ids) throws SQLException {
+    if (ids == null || ids.isEmpty())
+      return List.of();
+
+    // generar query con placeholders
+    String placeholders = String.join(", ", ids.stream().map(i -> "?").toList());
+    String q = "SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT FROM WAREHOUSES WHERE ID IN ("
+        + placeholders + ")";
+
+    try (PreparedStatement ps = conn.prepareStatement(q)) {
+      int idx = 1;
+
+      // setear valores de los placeholders
+      for (Long id : ids)
+        ps.setLong(idx++, id);
+
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Warehouse> out = new ArrayList<>();
+        while (rs.next())
+          out.add(map(rs));
+        return out;
+      }
+    }
+  }
+
+  public List<Warehouse> findAll(Connection c) throws SQLException {
     String sql = """
         SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
         FROM WAREHOUSES ORDER BY ID
@@ -92,7 +117,7 @@ public class WarehouseRepository {
     }
   }
 
-  private Warehouse map(ResultSet rs) throws Exception {
+  private Warehouse map(ResultSet rs) throws SQLException {
     Warehouse w = new Warehouse();
     w.setId(rs.getLong("ID"));
     w.setName(rs.getString("NAME"));

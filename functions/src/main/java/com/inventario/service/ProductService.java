@@ -9,13 +9,14 @@ import com.inventario.repository.ProductRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
 public class ProductService {
   private final ProductRepository repo = new ProductRepository();
 
-  public ProductResponse create(ProductRequest req) throws Exception {
+  public ProductResponse create(ProductRequest req) throws SQLException {
     validate(req);
 
     try (Connection c = Db.open()) {
@@ -32,13 +33,53 @@ public class ProductService {
     }
   }
 
-  public List<ProductResponse> getAll() throws Exception {
+  public ProductResponse getById(Long id) throws SQLException {
+    try (Connection conn = Db.open()) {
+      return ProductMapper.toResponse(repo.findById(conn, id));
+    }
+  }
+
+  public List<ProductResponse> findByIds(List<Long> ids) throws SQLException {
+    try (Connection c = Db.open()) {
+      return repo.findByIds(c, ids).stream()
+          .map(ProductMapper::toResponse)
+          .toList();
+    }
+  }
+
+  public List<ProductResponse> getAll() throws SQLException {
     try (Connection c = Db.open()) {
       List<Product> result = repo.findAll(c);
 
       return result.stream()
           .map(ProductMapper::toResponse)
           .toList();
+    }
+  }
+
+  public ProductResponse update(long id, ProductRequest req) throws SQLException {
+    validate(req);
+
+    try (Connection conn = Db.open()) {
+      conn.setAutoCommit(false);
+
+      Product p = ProductMapper.toModel(req);
+      p.setId(id);
+
+      repo.update(conn, p);
+      conn.commit();
+
+      return ProductMapper.toResponse(repo.findById(conn, id));
+    }
+  }
+
+  public void delete(long id) throws SQLException {
+    try (Connection conn = Db.open()) {
+      conn.setAutoCommit(false);
+
+      repo.delete(conn, id);
+
+      conn.commit();
     }
   }
 

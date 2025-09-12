@@ -1,9 +1,17 @@
 -- =========================================================
--- SCHEMA: Sistema Inventario - Oracle
--- Compatibilidad: Oracle 12c+ (IDENTITY), formatos ISO
+-- Sistema Inventario - Oracle
+-- Esquema de base de datos
+--
+-- IMPORTANTE:  Ejecutar este script solo si se esta
+--              creando una nueva base de datos.
+--
+-- v1.0
+-- Creación del esquema inicial
 -- =========================================================
 
--- crear un esquema dedicado
+-- Si se está creando una nueva base de datos, 
+-- descomentar las siguientes líneas para crear un esquema dedicado
+
 -- CREATE USER INVENTARIO IDENTIFIED BY "--password--";
 -- GRANT CONNECT, RESOURCE TO INVENTARIO;
 -- ALTER USER INVENTARIO QUOTA UNLIMITED ON USERS;
@@ -35,4 +43,7 @@ CREATE TABLE PRODUCTS (
 
 -- Búsqueda por bodega
 CREATE INDEX IX_PRODUCTS_WAREHOUSE ON PRODUCTS (WAREHOUSE_ID);
+CREATE INDEX IX_PRODUCTS_SKU ON PRODUCTS (SKU);
+CREATE INDEX IX_PRODUCTS_NAME ON PRODUCTS (NAME);
+
 

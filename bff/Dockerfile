@@ -17,8 +17,7 @@ COPY --from=builder /app/target/*.jar app.jar
 
 # Configuración de la aplicación
 EXPOSE 8080
-ENV API_WAREHOUSES_URL=https://cn2-inventario.azurewebsites.net/api/warehouses \
-    API_PRODUCTS_URL=https://cn2-inventario.azurewebsites.net/api/products \
+ENV AZURE_FUNCTIONS_URL=https://cn2-inventario.azurewebsites.net \
     CORS_ALLOWED_ORIGINS=*
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

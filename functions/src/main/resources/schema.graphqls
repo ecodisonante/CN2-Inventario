@@ -1,0 +1,46 @@
+# --- Catálogos/relaciones ---
+type OrderStatus       { id: ID!, code: String!, description: String }
+type OrderType         { id: ID!, code: String!, description: String }
+type OrderLineStatus   { id: ID!, code: String!, description: String }
+type ReservationStatus { id: ID!, code: String!, description: String }
+type MovementType      { id: ID!, code: String!, description: String }
+
+# --- Dominio ---
+
+type Product {
+  id: ID!
+  sku: String
+  name: String!
+  category: String
+  price: Int!
+  enabled: Boolean!
+  stocks(warehouseId: ID): [Stock!]!
+}
+
+type Warehouse {
+  id: ID!
+  name: String!
+  location: String
+  enabled: Boolean!
+}
+
+type Stock {
+  product: Product!
+  warehouse: Warehouse!
+  onHand: Int!
+  reserved: Int!
+  available: Int!
+  updatedAt: String
+}
+
+
+# ---------- Consultas y Mutaciones ----------
+type Query {
+  # stock por producto o bodega - limita la cantidad de registros
+  stock(productId: ID, warehouseId: ID, limit: Int = 20, offset: Int = 0): [Stock!]!
+  
+}
+
+type Mutation {
+  receiveStock(productId: ID!, warehouseId: ID!, qty: Int!, reference: String): Stock!
+}
