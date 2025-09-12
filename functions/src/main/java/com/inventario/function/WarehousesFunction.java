@@ -15,7 +15,7 @@ public class WarehousesFunction {
   private final WarehouseService srv = new WarehouseService();
   private static final ObjectMapper om = new ObjectMapper();
 
-  @FunctionName("warehouses-create")
+  @FunctionName("warehouses")
   public HttpResponseMessage handle(
       @HttpTrigger(name = "req", methods = { HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT,
           HttpMethod.DELETE }, route = "warehouses/{id?}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
