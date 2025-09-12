@@ -1,87 +1,85 @@
 package com.inventario.bff.service;
 
-import java.util.Arrays;
-import java.util.List;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.inventario.bff.dto.ProductRequest;
+import com.inventario.bff.dto.ProductResponse;
+import com.inventario.bff.util.Json;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.inventario.bff.dto.WarehouseRequest;
-import com.inventario.bff.dto.WarehouseResponse;
-import com.inventario.bff.util.Json;
-
-import lombok.extern.log4j.Log4j2;
+import java.util.Arrays;
+import java.util.List;
 
 @Log4j2
 @Service
-public class WarehouseServiceImpl implements WarehouseService {
+public class ProductServiceImpl implements ProductService {
 
     private final RestTemplate restTemplate;
 
     @Value("${azure.functions.url}")
     private String baseUrl;
-    private static final String API_PATH = "/api/warehouses";
-
-    public WarehouseServiceImpl(RestTemplate restTemplate) {
+    private static final String API_PATH = "/api/products";
+    
+    @Autowired
+    public ProductServiceImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     @Override
-    public List<WarehouseResponse> getWarehouses() {
+    public List<ProductResponse> getProducts() {
         String url = baseUrl + API_PATH;
-        WarehouseResponse[] response = restTemplate.getForObject(url, WarehouseResponse[].class);
+        ProductResponse[] response = restTemplate.getForObject(url, ProductResponse[].class);
         return Arrays.asList(response);
     }
 
     @Override
-    public WarehouseResponse getWarehouseById(long id) {
+    public ProductResponse   getProductById(long id) {
         String url = baseUrl + API_PATH + "/" + id;
-        return restTemplate.getForObject(url, WarehouseResponse.class);
+        return restTemplate.getForObject(url, ProductResponse.class);
     }
 
     @Override
-    public WarehouseResponse createWarehouse(WarehouseRequest warehouse) {
+    public ProductResponse createProduct(ProductRequest product) {
         String url = baseUrl + API_PATH;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String jsonRequest;
         try {
-            jsonRequest = Json.write(warehouse);
+            jsonRequest = Json.write(product);
         } catch (JsonProcessingException e) {
-            log.error("Error al convertir el objeto a JSON", e);
+            log.error("Error al convertir el request a JSON: {}", e.getMessage(), e);
             return null;
         }
 
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonRequest, headers);
 
-        ResponseEntity<WarehouseResponse> response = restTemplate.exchange(
+        return restTemplate.exchange(
                 url,
                 HttpMethod.POST,
                 requestEntity,
-                WarehouseResponse.class);
-        return response.getBody();
+                ProductResponse.class).getBody();
     }
 
     @Override
-    public WarehouseResponse updateWarehouse(long id, WarehouseRequest warehouse) {
+    public ProductResponse updateProduct(long id, ProductRequest product) {
         String url = baseUrl + API_PATH + "/" + id;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String jsonRequest;
         try {
-            jsonRequest = Json.write(warehouse);
+            jsonRequest = Json.write(product);
         } catch (JsonProcessingException e) {
-            log.error("Error al convertir el objeto a JSON", e);
+            log.error("Error al convertir el request a JSON: {}", e.getMessage(), e);
             return null;
         }
 
@@ -91,11 +89,11 @@ public class WarehouseServiceImpl implements WarehouseService {
                 url,
                 HttpMethod.PUT,
                 requestEntity,
-                WarehouseResponse.class).getBody();
+                ProductResponse.class).getBody();
     }
 
     @Override
-    public void deleteWarehouse(long id) {
+    public void deleteProduct(long id) {
         String url = baseUrl + API_PATH + "/" + id;
         restTemplate.delete(url);
     }

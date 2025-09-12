@@ -1,6 +1,6 @@
 package com.inventario.bff.dto;
 
-public record WarehouseItem(
+public record WarehouseResponse(
         long id,
         String name,
         String location,
