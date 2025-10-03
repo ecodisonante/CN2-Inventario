@@ -1,0 +1,7 @@
+¡Nueva bodega creada: --warehouse_name--!
+
+Hola --admin_name--,
+
+Se registró una nueva bodega en el sistema.
+
+BODEGAX

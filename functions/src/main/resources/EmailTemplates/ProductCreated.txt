@@ -1,0 +1,7 @@
+Producto creado: --product_name--
+
+Hola --admin_name--,
+
+El producto fue registrado en la bodega --warehouse_name--.
+
+BODEGAX
