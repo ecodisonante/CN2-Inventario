@@ -13,6 +13,7 @@ public class Warehouse {
     private long id;
     private String name;
     private String location;
+    private String isPrimary;
     private String enabled;
     private Timestamp createdAt;
 }

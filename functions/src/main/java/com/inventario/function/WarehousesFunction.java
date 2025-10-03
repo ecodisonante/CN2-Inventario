@@ -39,7 +39,6 @@ public class WarehousesFunction {
     } catch (Exception e) {
       ctx.getLogger().log(java.util.logging.Level.SEVERE, "Error al ejecutar WarehousesFunction", e);
       return HttpUtils.internalErrorMessage(req, e.getMessage());
-
     }
   }
 
@@ -85,7 +84,7 @@ public class WarehousesFunction {
       return HttpUtils.badRequestMessage(req, "El ID es requerido para eliminar una bodega.");
     }
 
-    srv.delete(id);
-    return HttpUtils.createMessage(req, "{\"eliminado\": " + id + "}", 200);
+    srv.prepareToDelete(id);
+    return HttpUtils.createMessage(req, "{\"en proceso de eliminacion\": " + id + "}", 200);
   }
 }

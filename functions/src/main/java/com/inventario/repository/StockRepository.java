@@ -147,6 +147,22 @@ public class StockRepository {
     }
   }
 
+  public void deleteWarehouseStock(Connection c, long warehouseId) throws SQLException {
+    String sql = "DELETE FROM STOCKS WHERE WAREHOUSE_ID = ?";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+      ps.setLong(1, warehouseId);
+      ps.executeUpdate();
+    }
+  }
+
+  public void deleteProductStock(Connection c, long productId) throws SQLException {
+    String sql = "DELETE FROM STOCKS WHERE PRODUCT_ID = ?";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+      ps.setLong(1, productId);
+      ps.executeUpdate();
+    }
+  }
+
   private Stock map(ResultSet rs) throws SQLException {
     Stock s = new Stock();
     s.setProductId(rs.getLong("PRODUCT_ID"));
