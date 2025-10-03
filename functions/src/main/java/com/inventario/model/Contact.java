@@ -1,6 +1,5 @@
 package com.inventario.model;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 import lombok.AllArgsConstructor;
@@ -10,12 +9,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Product {
+public class Contact {
     private long id;
-    private String sku;
     private String name;
-    private String category;
-    private BigDecimal price;
+    private String email;
+    private String address;
+    private String phone;
     private String enabled;
     private Timestamp createdAt;
 }

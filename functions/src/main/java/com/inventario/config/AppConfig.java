@@ -28,4 +28,20 @@ public final class AppConfig {
     public static String password() {
         return env("ORACLE_PASSWORD");
     }
+
+    public static String eventGridTopicEndpoint() {
+        return env("EVENTGRID_TOPIC_ENDPOINT");
+    }
+
+    public static String eventGridAccessKey() {
+        return env("EVENTGRID_ACCESS_KEY");
+    }
+
+    public static String acsEmailqConnectionString() {
+        return env("ACS_EMAIL_CONNECTION_STRING");
+    }
+
+    public static String acsEmailSender() {
+        return env("ACS_EMAIL_SENDER");
+    }
 }

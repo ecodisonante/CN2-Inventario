@@ -1,7 +1,6 @@
 package com.inventario.dto;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 
 public record ProductRequest(
         Long id,
@@ -11,5 +10,6 @@ public record ProductRequest(
         BigDecimal price,
         String enabled,
         Long warehouseId,
-        Timestamp createdAt) {
+        Integer onHand        
+        ) {
 }

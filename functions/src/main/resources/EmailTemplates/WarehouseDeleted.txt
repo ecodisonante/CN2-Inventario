@@ -1,0 +1,11 @@
+Bodega eliminada: --warehouse_name--
+
+Hola --admin_name--,
+
+El proceso de eliminación se completó con el siguiente resumen:
+
+Contactos desvinculados: --deleted_contacts--
+Registros de stock eliminados: --deleted_stock--
+Productos deshabilitados: --disabled_products--
+
+BODEGAX

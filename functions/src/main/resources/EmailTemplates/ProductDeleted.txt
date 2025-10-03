@@ -1,0 +1,7 @@
+Producto eliminado: --product_name--
+
+Hola --admin_name--,
+
+El producto fue eliminado de la bodega --warehouse_name--.
+
+BODEGAX

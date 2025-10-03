@@ -14,6 +14,9 @@ public final class StockMapper {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static StockResponse toResponse(Stock s) {
+        if (s == null)
+            return null;
+
         String created = "";
         if (s.getUpdatedAt() != null)
             created = s.getUpdatedAt().toLocalDateTime().format(dtf);
