@@ -1,6 +1,7 @@
 package com.inventario.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.NoArgsConstructor;
@@ -17,5 +18,13 @@ public final class Json {
 
   public static String write(Object obj) throws JsonProcessingException {
     return MAPPER.writeValueAsString(obj);
+  }
+
+  public static JsonNode writeNode(Object dto) {
+    return MAPPER.valueToTree(dto);
+  }
+
+  public static <T> T readNode(JsonNode body, Class<T> type) throws JsonProcessingException {
+    return MAPPER.treeToValue(body, type);
   }
 }

@@ -90,9 +90,15 @@ public class StockService {
   public void delete(long productId, long warehouseId) throws SQLException {
     try (Connection conn = Db.open()) {
       conn.setAutoCommit(false);
-
       repo.delete(conn, productId, warehouseId);
+      conn.commit();
+    }
+  }
 
+public void deleteWarehouseStock(long warehouseId) throws SQLException {
+    try (Connection conn = Db.open()) {
+      conn.setAutoCommit(false);
+      repo.deleteWarehouseStock(conn, warehouseId);
       conn.commit();
     }
   }

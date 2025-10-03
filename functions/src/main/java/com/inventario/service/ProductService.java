@@ -54,6 +54,12 @@ public class ProductService {
     }
   }
 
+  public void disableNonStockProducts() throws SQLException {
+    try (Connection c = Db.open()) {
+      repo.disableNonStockProducts(c);
+    }
+  }
+
   public List<ProductResponse> getAll() throws SQLException {
     try (Connection c = Db.open()) {
       List<Product> result = repo.findAll(c);
@@ -102,8 +108,8 @@ public class ProductService {
       throw new IllegalArgumentException("name is required");
     if (req.price() == null || req.price().compareTo(BigDecimal.ZERO) < 0)
       throw new IllegalArgumentException("price must be >= 0");
-    if (req.warehouseId() == null)
-      throw new IllegalArgumentException("warehouseId is required");
+    // if (req.warehouseId() == null)
+    //   throw new IllegalArgumentException("warehouseId is required");
     if (req.enabled() != null && !req.enabled().isBlank()
         && !("S".equalsIgnoreCase(req.enabled()) || "N".equalsIgnoreCase(req.enabled())))
       throw new IllegalArgumentException("enabled must be 'S' or 'N'");

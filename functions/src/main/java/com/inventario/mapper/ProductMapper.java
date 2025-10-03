@@ -25,7 +25,6 @@ public final class ProductMapper {
             p.getCategory(),
             p.getPrice(),
             p.getEnabled(),
-            p.getWarehouseId(),
             created
         );
     }
@@ -38,7 +37,6 @@ public final class ProductMapper {
         p.setCategory(req.category());
         p.setPrice(req.price());
         p.setEnabled((req.enabled() == null || req.enabled().isBlank()) ? "S" : req.enabled());
-        if (req.warehouseId() != null) p.setWarehouseId(req.warehouseId());
         return p;
     }
 }

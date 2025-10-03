@@ -10,6 +10,5 @@ public record ProductRequest(
         String category,
         BigDecimal price,
         String enabled,
-        Long warehouseId,
         Timestamp createdAt) {
 }
