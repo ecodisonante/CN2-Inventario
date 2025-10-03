@@ -14,6 +14,9 @@ public final class ProductMapper {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static ProductResponse toResponse(Product p) {
+        if (p == null)
+            return null;
+
         String created = "";
         if (p.getCreatedAt() != null)
             created = p.getCreatedAt().toLocalDateTime().format(dtf);

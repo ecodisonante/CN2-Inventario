@@ -10,6 +10,8 @@ import lombok.AccessLevel;
 public final class NotificationMapper {
 
     public static NotificationDto toDto(ProductResponse pr) {
+        if (pr == null)
+            return null;
 
         var dto = new NotificationDto();
         // dto.setWarehouseId(pr.warehouseId());
@@ -21,6 +23,8 @@ public final class NotificationMapper {
     }
 
     public static NotificationDto toDto(WarehouseResponse wr) {
+        if (wr == null)
+            return null;
 
         var dto = new NotificationDto();
         dto.setWarehouseId(wr.id());

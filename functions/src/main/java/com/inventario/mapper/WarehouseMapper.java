@@ -14,6 +14,8 @@ public final class WarehouseMapper {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static WarehouseResponse toResponse(Warehouse w) {
+        if (w == null)
+            return null;
 
         String stringTimestamp = "";
         if (w.getCreatedAt() != null)
