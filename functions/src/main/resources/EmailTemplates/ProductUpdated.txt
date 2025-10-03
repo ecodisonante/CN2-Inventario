@@ -1,0 +1,7 @@
+Producto actualizado: --product_name--
+
+Hola --admin_name--,
+
+Los datos del producto en la bodega --warehouse_name-- fueron actualizados correctamente.
+
+BODEGAX

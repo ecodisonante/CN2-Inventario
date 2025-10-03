@@ -28,7 +28,7 @@ public class GraphQLFunction {
     var warehouseSrv = new WarehouseService();
     var stockSrv = new StockService();
 
-    this.provider = new GraphQLProvider(productoSrv, stockSrv, warehouseSrv);
+    this.provider = new GraphQLProvider(stockSrv);
     this.productDataLoader = new ProductDataLoader(productoSrv);
     this.warehouseDataLoader = new WarehouseDataLoader(warehouseSrv);
   }

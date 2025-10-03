@@ -14,6 +14,8 @@ public final class WarehouseMapper {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static WarehouseResponse toResponse(Warehouse w) {
+        if (w == null)
+            return null;
 
         String stringTimestamp = "";
         if (w.getCreatedAt() != null)
@@ -23,6 +25,7 @@ public final class WarehouseMapper {
                 w.getId(),
                 w.getName(),
                 w.getLocation(),
+                w.getIsPrimary() == null ? "N" : w.getIsPrimary(),
                 w.getEnabled(),
                 stringTimestamp);
     }
@@ -31,6 +34,7 @@ public final class WarehouseMapper {
         var w = new Warehouse();
         w.setName(req.name());
         w.setLocation(req.location());
+        w.setIsPrimary((req.isPrimary() == null || req.isPrimary().isBlank()) ? "N" : req.isPrimary());
         w.setEnabled((req.enabled() == null || req.enabled().isBlank()) ? "S" : req.enabled());
         return w;
     }

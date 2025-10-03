@@ -16,10 +16,9 @@ import com.inventario.dto.WarehouseResponse;
 public class GraphQLProvider {
   private final GraphQL graphQL;
 
-  public GraphQLProvider(
-      ProductService productSrv,
-      StockService stockSrv,
-      WarehouseService warehouseSrv) {
+  public GraphQLProvider(StockService stockSrv) {
+    String productIdStr = "productId";
+    String warehouseIdStr = "warehouseId";
 
     // Cargar schema
     InputStream s = getClass().getResourceAsStream("/schema.graphqls");
@@ -27,10 +26,8 @@ public class GraphQLProvider {
 
     // -- STOCK --
     DataFetcher<?> stock = env -> {
-      // stock(productId: ID, warehouseId: ID, limit: Int = 20, offset: Int = 0):
-      // [Stock!]!
-      Long productId = env.containsArgument("productId") ? Long.valueOf(env.getArgument("productId")) : null;
-      Long warehouseId = env.containsArgument("warehouseId") ? Long.valueOf(env.getArgument("warehouseId")) : null;
+      Long productId = env.containsArgument(productIdStr) ? Long.valueOf(env.getArgument(productIdStr)) : null;
+      Long warehouseId = env.containsArgument(warehouseIdStr) ? Long.valueOf(env.getArgument(warehouseIdStr)) : null;
       Integer limit = env.getArgumentOrDefault("limit", 20);
       Integer offset = env.getArgumentOrDefault("offset", 0);
 
@@ -40,7 +37,6 @@ public class GraphQLProvider {
     // stock.producto
     DataFetcher<?> productFetcher = env -> {
       StockResponse sr = env.getSource();
-      System.out.println(sr);
       var loader = env.<Long, ProductResponse>getDataLoader("productLoader");
       return loader.load(sr.productId());
     };
@@ -48,7 +44,6 @@ public class GraphQLProvider {
     // stock.warehouse
     DataFetcher<?> warehouseFetcher = env -> {
       StockResponse sr = env.getSource();
-      System.out.println(sr);
       var loader = env.<Long, WarehouseResponse>getDataLoader("warehouseLoader");
       return loader.load(sr.warehouseId());
     };
@@ -57,8 +52,8 @@ public class GraphQLProvider {
 
     // receiveStock(productId: ID!, warehouseId: ID!, qty: Int!, reference
     DataFetcher<?> receiveStock = env -> {
-      Long productId = env.containsArgument("productId") ? Long.valueOf(env.getArgument("productId")) : null;
-      Long warehouseId = env.containsArgument("warehouseId") ? Long.valueOf(env.getArgument("warehouseId")) : null;
+      Long productId = env.containsArgument(productIdStr) ? Long.valueOf(env.getArgument(productIdStr)) : null;
+      Long warehouseId = env.containsArgument(warehouseIdStr) ? Long.valueOf(env.getArgument(warehouseIdStr)) : null;
       Integer qty = env.getArgument("qty");
       String reference = env.getArgument("reference");
 

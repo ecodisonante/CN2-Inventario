@@ -1,22 +1,25 @@
 # 📦 Sistema de Inventario de Productos
 
+
 ## 📌 Descripción
 
 Este proyecto corresponde al encargo para la **Evaluación Sumativa** de la asignatura **Desarrollo Cloud Native II (DSY2207)**:
 
-**“Implementando un sistema con arquitectura Serverless”**.
+**“Implementando un sistema con arquitectura Serverless y orientada a eventos”**.
 
-Se diseñó e implementó un **sistema de inventario de productos** utilizando un **enfoque 100% backend**, compuesto por:
+Se diseñó e implementó un **sistema de inventario de productos y bodegas** utilizando un enfoque **100% backend serverless**, con:
 
-* Microservicio **BFF** (Java, Docker) encargado de orquestar las llamadas.
-* Funciones **Serverless en Azure Functions (Java)**:
+* **BFF (Java, Docker)** que expone endpoints REST/GraphQL y orquesta peticiones.
+* **Funciones Azure (Java)** organizadas por dominio:
+
   * `ProductsFn` → CRUD de productos.
   * `WarehousesFn` → CRUD de bodegas.
-  * `StockFn` → Consultas de stock (GraphQL).
-* **Oracle Autonomous DB** (conexión vía Wallet).
-* **GraphQL Provider** integrado para consultas y mutaciones básicas.
-
-El sistema está preparado para ser desplegado tanto en **Docker (BFF en EC2)** como en **Azure Functions**.
+  * `StockFn` → consultas de stock vía GraphQL.
+  * `NotificationsFn` → suscripción a eventos de C/U/D para enviar emails.
+  * `ComplexFn` → suscripción para manejar operaciones complejas (ej: borrado de bodega o producto).
+* **Oracle Autonomous DB** para persistencia de productos, bodegas, stock, contactos y auditoría.
+* **Event Grid** como bus de eventos para integración y desac acoplamiento.
+* **Azure Communication Services – Email** como canal de notificaciones.
 
 ---
 
@@ -24,15 +27,18 @@ El sistema está preparado para ser desplegado tanto en **Docker (BFF en EC2)** 
 
 ### Diagrama actualizado de la solución
 
-![Arquitectura Inventario](docs/Inventario-v1.1.png)
+![Arquitectura Inventario](docs/Inventario-v1.3.png)
 
-**Componentes actuales:**
+**Componentes clave:**
 
-* **BFF (Java, Docker):** expone endpoints REST y GraphQL, orquesta las funciones.
-* **ProductsFn:** operaciones CRUD sobre productos.
-* **WarehousesFn:** operaciones CRUD sobre bodegas.
-* **StockFn (GraphQL):** consultas de stock y mutación de recepción de productos.
-* **Oracle DB:** persistencia de productos, bodegas, movimientos y stock.
+* **BFF (Java, Docker):** capa de entrada con endpoints REST y GraphQL.
+* **Functions (Java):**
+  * `ProductsFn`, `WarehousesFn`, `StockFn` → CRUD y consultas.
+  * `NotificationSubscription` → procesa eventos C/U/D de productos y bodegas para enviar emails.
+  * `ComplexSubscription` → maneja operaciones complejas que requieren coordinación entre varios servicios (ej: borrado de bodega → elimina stock, contactos y desactiva productos).
+* **Event Grid:** desacopla productores (Functions) y consumidores (otras Functions, notificaciones).
+* **Oracle DB:** esquema con entidades `PRODUCTS`, `WAREHOUSES`, `CONTACTS`, `STOCKS`, `STOCK_MOVEMENTS`, etc.
+* **Azure Communication Services:** envío de correos basados en plantillas HTML con placeholders.
 
 ---
 
@@ -42,24 +48,39 @@ El sistema está preparado para ser desplegado tanto en **Docker (BFF en EC2)** 
 
 * **Productos**
 
-  * Alta, baja, modificación y consulta de productos.
+  * Crear, modificar, eliminar y consultar productos.
 * **Bodegas**
 
-  * Alta, baja, modificación y consulta de bodegas.
+  * Crear, modificar, eliminar (EPIC orquestado) y consultar bodegas.
+* **Contactos**
+
+  * Asociar contactos a bodegas, designar administrador, desvincular.
 
 ### GraphQL (Azure Functions)
 
 * **Queries**
 
-  * `stock(productId, warehouseId, limit, offset)` → consulta de stock filtrado.
+  * `stock(productId, warehouseId, limit, offset)` → consulta stock filtrado.
 * **Mutations**
 
-  * `receiveStock(productId, warehouseId, qty, reference)` → registrar ingreso de stock.
+  * `receiveStock(productId, warehouseId, qty, reference)` → registrar ingreso.
+  * `transferStock(productId, sourceWarehouse, targetWarehouse, qty)` → transferencia entre bodegas.
 
-### BFF
+### Notificaciones (Event Grid + ACS)
 
-* Exposición unificada vía REST y GraphQL.
-* Uso de **DataLoader** para resolver dependencias (productos y bodegas) de manera eficiente.
+* Suscripción **NotificationSubscription**:
+
+  * Procesa eventos `product.created|updated|deleted`, `warehouse.created|updated|deleting`.
+  * Mapea los datos a un `NotificationDto` y genera correos personalizados.
+* Plantillas HTML en `resources/templates/` con placeholders dinámicos (`--product_name--`, `--warehouse_name--`, etc.).
+
+### Procesos complejos (EPICs)
+
+* Suscripción **ProcessSubscription**:
+
+  * Maneja eventos `warehouse.deletion.requested` y `product.deletion.requested`.
+  * Coordina borrado lógico de dependencias: stocks, contactos, productos huérfanos.
+  * Publica evento `*.deletion.completed` con resumen para notificación.
 
 ---
 
@@ -68,28 +89,11 @@ El sistema está preparado para ser desplegado tanto en **Docker (BFF en EC2)** 
 ```
 .
 ├── bff/                # Microservicio orquestador (Java, Docker)
-├── functions/          # Azure Functions (ProductsFn, WarehousesFn, StockFn)
-├── scripts/            # Scripts de creación de tablas y datos iniciales
+├── functions/          # Azure Functions (ProductsFn, WarehousesFn, StockFn, NotificationsFn, ProcessFn)
+├── resources/
+│   └── templates/      # Plantillas HTML para notificaciones
+├── scripts/            # Scripts SQL de creación de tablas y datos iniciales
 ├── docs/               # Diagramas y documentación
 └── README.md
 ```
-
----
-
-## 🚀 Despliegue
-
-### BFF en EC2
-
-1. Construcción del contenedor:
-
-   ```bash
-   docker build -t inventario-bff .
-   docker run -p 8080:8080 inventario-bff
-   ```
-2. Acceso en: `http://<EC2-IP>:8080`
-
-### Funciones en Azure
-
-* Despliegue automatizado vía **GitHub Actions** con `azure/functions-action@v1`.
-* Variables sensibles manejadas en **Azure Configuration**.
 

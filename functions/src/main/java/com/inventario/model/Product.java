@@ -17,6 +17,5 @@ public class Product {
     private String category;
     private BigDecimal price;
     private String enabled;
-    private long warehouseId;
     private Timestamp createdAt;
 }
