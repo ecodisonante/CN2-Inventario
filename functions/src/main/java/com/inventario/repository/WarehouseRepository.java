@@ -10,15 +10,16 @@ public class WarehouseRepository {
 
   public long insert(Connection c, Warehouse w) throws SQLException {
     String sql = """
-        INSERT INTO WAREHOUSES (NAME, LOCATION, ENABLED, CREATED_AT)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO WAREHOUSES (NAME, LOCATION, IS_PRIMARY, ENABLED, CREATED_AT)
+        VALUES (?, ?, ?, ?, ?)
         """;
 
     try (PreparedStatement ps = c.prepareStatement(sql, new String[] { "ID" })) {
       ps.setString(1, w.getName());
       ps.setString(2, w.getLocation());
-      ps.setString(3, w.getEnabled());
-      ps.setTimestamp(4, w.getCreatedAt());
+      ps.setString(3, w.getIsPrimary());
+      ps.setString(4, w.getEnabled());
+      ps.setTimestamp(5, w.getCreatedAt());
 
       ps.executeUpdate();
 
@@ -32,12 +33,30 @@ public class WarehouseRepository {
 
   public Warehouse findById(Connection c, long id) throws SQLException {
     String sql = """
-        SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
+        SELECT ID, NAME, LOCATION, IS_PRIMARY, ENABLED, CREATED_AT
         FROM WAREHOUSES WHERE ID = ?
         """;
 
     try (PreparedStatement ps = c.prepareStatement(sql)) {
       ps.setLong(1, id);
+      try (ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+          return map(rs);
+        }
+
+        return null;
+      }
+    }
+  }
+
+  public Warehouse findPrimary(Connection c) throws SQLException {
+    String sql = """
+        SELECT ID, NAME, LOCATION, IS_PRIMARY, ENABLED, CREATED_AT
+        FROM WAREHOUSES WHERE IS_PRIMARY = 'S'
+        """;
+
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
       try (ResultSet rs = ps.executeQuery()) {
 
         if (rs.next()) {
@@ -55,7 +74,7 @@ public class WarehouseRepository {
 
     // generar query con placeholders
     String placeholders = String.join(", ", ids.stream().map(i -> "?").toList());
-    String q = "SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT FROM WAREHOUSES WHERE ID IN ("
+    String q = "SELECT ID, NAME, LOCATION, IS_PRIMARY, ENABLED, CREATED_AT FROM WAREHOUSES WHERE ID IN ("
         + placeholders + ")";
 
     try (PreparedStatement ps = conn.prepareStatement(q)) {
@@ -76,7 +95,7 @@ public class WarehouseRepository {
 
   public List<Warehouse> findAll(Connection c) throws SQLException {
     String sql = """
-        SELECT ID, NAME, LOCATION, ENABLED, CREATED_AT
+        SELECT ID, NAME, LOCATION, IS_PRIMARY, ENABLED, CREATED_AT
         FROM WAREHOUSES ORDER BY ID
         """;
 
@@ -105,14 +124,15 @@ public class WarehouseRepository {
   public void update(Connection c, long id, Warehouse w) throws SQLException {
     String sql = """
         UPDATE WAREHOUSES
-        SET NAME = ?, LOCATION = ?, ENABLED = ?
+        SET NAME = ?, LOCATION = ?, IS_PRIMARY = ?, ENABLED = ?
         WHERE ID = ?
         """;
     try (PreparedStatement ps = c.prepareStatement(sql)) {
       ps.setString(1, w.getName());
       ps.setString(2, w.getLocation());
-      ps.setString(3, w.getEnabled());
-      ps.setLong(4, id);
+      ps.setString(3, w.getIsPrimary());
+      ps.setString(4, w.getEnabled());
+      ps.setLong(5, id);
       ps.executeUpdate();
     }
   }
@@ -122,6 +142,7 @@ public class WarehouseRepository {
     w.setId(rs.getLong("ID"));
     w.setName(rs.getString("NAME"));
     w.setLocation(rs.getString("LOCATION"));
+    w.setIsPrimary(rs.getString("IS_PRIMARY"));
     w.setEnabled(rs.getString("ENABLED"));
     w.setCreatedAt(rs.getTimestamp("CREATED_AT"));
     return w;
