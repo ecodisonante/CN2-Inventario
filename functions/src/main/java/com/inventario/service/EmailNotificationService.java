@@ -38,12 +38,12 @@ public class EmailNotificationService {
             }
             case "com.inventario.warehouse.created",
                     "com.inventario.warehouse.updated" -> {
-                var dto = Json.readNode(data, NotificationDto.class);
+                var wh = Json.readNode(data, WarehouseResponse.class);
+                var dto = NotificationMapper.toDto(wh);
                 sendWarehouseEmail(dto, action);
             }
             case "com.inventario.warehouse.deleted" -> {
-                var wh = Json.readNode(data, WarehouseResponse.class);
-                var dto = NotificationMapper.toDto(wh);
+                var dto = Json.readNode(data, NotificationDto.class);
                 sendWarehouseEmail(dto, action);
             }
             default -> {
@@ -53,22 +53,26 @@ public class EmailNotificationService {
     }
 
     private void sendProductEmail(NotificationDto data, CrudAction action) throws IOException, SQLException {
+        WarehouseResponse warehouse = null;
 
-        if (data.getWarehouseName() == null || data.getWarehouseName().isBlank()) {
-            var wh = warehouseService.getById(data.getWarehouseId());
-            if (wh == null || wh.name() == null || wh.name().isBlank()) {
-                log.error("Bodega no encontrada para id: {}", data.getWarehouseId());
-                return;
-            }
-            data.setWarehouseName(wh.name());
+        // obtener bodega si se informa ID
+        if (data.getWarehouseId() != null) {
+            warehouse = warehouseService.getById(data.getWarehouseId());
+        }
+        // Si no se encuentra, usar bodega primaria
+        if (warehouse == null || data.getWarehouseId() == null) {
+            warehouse = warehouseService.findPrimary();
         }
 
+        data.setWarehouseId(warehouse.id());
+        data.setWarehouseName(warehouse.name());
+
         if (data.getAdminEmail() == null || data.getAdminEmail().isBlank()) {
+            // obtener admin de la bodega
             var admin = contactService.findWarehouseAdmin(data.getWarehouseId());
             if (admin == null || admin.getEmail() == null || admin.getEmail().isBlank()) {
-                log.error("Administrador de bodega no encontrado o sin email para bodega id: {}",
-                        data.getWarehouseId());
-                return;
+                // si no se encuentra usar el admin de la bodega primaria
+                admin = contactService.findWarehouseAdmin(warehouseService.findPrimary().id());
             }
             data.setAdminEmail(admin.getEmail());
             data.setAdminName(admin.getName());
@@ -94,12 +98,22 @@ public class EmailNotificationService {
 
     private void sendWarehouseEmail(NotificationDto data, CrudAction action) throws IOException, SQLException {
         if (data.getAdminEmail() == null || data.getAdminEmail().isBlank()) {
+            // buscar admin de bodega
             var admin = contactService.findWarehouseAdmin(data.getWarehouseId());
+
+            // si no se encuentra usar el admin de la bodega primaria
             if (admin == null || admin.getEmail() == null || admin.getEmail().isBlank()) {
-                log.error("Administrador de bodega no encontrado o sin email para bodega id: {}",
-                        data.getWarehouseId());
-                return;
+                var primaryWarehouse = warehouseService.findPrimary();
+                admin = contactService.findWarehouseAdmin(primaryWarehouse.id());
+
+                // si no se encuentra el admin de la bodega primaria, no enviar email
+                if (admin == null || admin.getEmail() == null || admin.getEmail().isBlank()) {
+                    log.error("Administrador de bodega no encontrado o sin email para bodega id: {}",
+                            data.getWarehouseId());
+                    return;
+                }
             }
+
             data.setAdminEmail(admin.getEmail());
             data.setAdminName(admin.getName());
         }
