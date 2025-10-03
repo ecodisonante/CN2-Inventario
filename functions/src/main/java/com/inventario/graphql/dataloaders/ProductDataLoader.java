@@ -34,7 +34,7 @@ public class ProductDataLoader {
                     }
 
                     return list.stream().collect(Collectors.toMap(ProductResponse::id, p -> p));
-                }).thenApply(map -> keys.stream().map(k -> map.get(k)).toList());
+                }).thenApply(map -> keys.stream().map(map::get).toList());
 
         reg.register("productLoader", DataLoaderFactory.newDataLoader(productBatch));
         return reg;

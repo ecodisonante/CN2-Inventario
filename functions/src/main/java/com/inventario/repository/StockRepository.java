@@ -50,9 +50,7 @@ public class StockRepository {
     }
 
     // Devolver stock actualizado
-    var result = findPaged(conn, productId, warehouseId, 1, 0).get(0);
-
-    return result;
+    return findPaged(conn, productId, warehouseId, 1, 0).get(0);
   }
 
   // Filtrado opcional por producto y/o bodega con paginación

@@ -46,9 +46,7 @@ public class EmailNotificationService {
                 var dto = Json.readNode(data, NotificationDto.class);
                 sendWarehouseEmail(dto, action);
             }
-            default -> {
-                log.warn("Evento no soportado: {}", type);
-            }
+            default -> log.warn("Evento no soportado: {}", type);
         }
     }
 

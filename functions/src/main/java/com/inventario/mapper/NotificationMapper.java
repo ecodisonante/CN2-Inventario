@@ -14,8 +14,6 @@ public final class NotificationMapper {
             return null;
 
         var dto = new NotificationDto();
-        // dto.setWarehouseId(pr.warehouseId());
-        // TODO: get warehouseid by stock
         dto.setProductId(pr.id());
         dto.setProductName(pr.name());
 
