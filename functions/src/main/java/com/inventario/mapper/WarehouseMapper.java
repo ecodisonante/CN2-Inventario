@@ -23,6 +23,7 @@ public final class WarehouseMapper {
                 w.getId(),
                 w.getName(),
                 w.getLocation(),
+                w.getIsPrimary() == null ? "N" : w.getIsPrimary(),
                 w.getEnabled(),
                 stringTimestamp);
     }
@@ -31,6 +32,7 @@ public final class WarehouseMapper {
         var w = new Warehouse();
         w.setName(req.name());
         w.setLocation(req.location());
+        w.setIsPrimary((req.isPrimary() == null || req.isPrimary().isBlank()) ? "N" : req.isPrimary());
         w.setEnabled((req.enabled() == null || req.enabled().isBlank()) ? "S" : req.enabled());
         return w;
     }
