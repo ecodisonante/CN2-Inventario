@@ -64,6 +64,12 @@ public class WarehouseService {
     }
   }
 
+  public WarehouseResponse findPrimary() throws SQLException {
+    try (Connection c = Db.open()) {
+      return WarehouseMapper.toResponse(repo.findPrimary(c));
+    }
+  }
+
   public List<WarehouseResponse> getAll() throws SQLException {
     try (Connection c = Db.open()) {
       List<Warehouse> result = repo.findAll(c);
@@ -126,6 +132,10 @@ public class WarehouseService {
 
     // obtener contactos de la bodega
     var admin = contactService.findWarehouseAdmin(warehouseId);
+    if (admin == null) {
+      admin = contactService.findWarehouseAdmin(findPrimary().id());
+    }
+
     var contacts = contactService.findByWarehouse(warehouseId);
 
     log.info("Eliminando contactos de la bodega id: {}", warehouseId);
@@ -147,6 +157,11 @@ public class WarehouseService {
     // eliminar bodega
     log.info("Eliminando bodega id: {}", warehouseId);
     delete(warehouseId);
+
+    if (admin == null) {
+      log.warn("No se encontro administrador para la bodega id: {}", warehouseId);
+      return;
+    }
 
     var dto = new NotificationDto();
     dto.setWarehouseId(warehouseId);
