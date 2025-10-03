@@ -25,10 +25,14 @@ public class WarehouseService {
 
       w.setCreatedAt(new Timestamp(System.currentTimeMillis()));
       w.setId(repo.insert(c, w));
-
       c.commit();
 
-      return WarehouseMapper.toResponse(w);
+      var response = WarehouseMapper.toResponse(w);
+
+      // Enviar notificacion
+      EventGridPublisherFactory.publishCrud(ENTITY, CrudAction.CREATED, String.valueOf(response.id()), response);
+
+      return response;
     }
   }
 
@@ -66,11 +70,14 @@ public class WarehouseService {
       w.setId(id);
 
       repo.update(c, id, w);
-
       c.commit();
 
-      // Obtener el registro actualizado para retornar
-      return WarehouseMapper.toResponse(repo.findById(c, id));
+      var response = WarehouseMapper.toResponse(w);
+
+      // Enviar notificacion
+      EventGridPublisherFactory.publishCrud(ENTITY, CrudAction.UPDATED, String.valueOf(response.id()), response);
+
+      return response;
     }
   }
 

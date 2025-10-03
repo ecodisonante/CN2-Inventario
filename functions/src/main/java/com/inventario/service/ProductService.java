@@ -6,6 +6,8 @@ import com.inventario.mapper.ProductMapper;
 import com.inventario.model.Product;
 import com.inventario.repository.Db;
 import com.inventario.repository.ProductRepository;
+import com.inventario.events.CrudAction;
+import com.inventario.events.EventGridPublisherFactory;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -15,6 +17,7 @@ import java.util.List;
 
 public class ProductService {
   private final ProductRepository repo = new ProductRepository();
+  private static final String ENTITY = "Product";
 
   public ProductResponse create(ProductRequest req) throws SQLException {
     validate(req);
@@ -26,10 +29,14 @@ public class ProductService {
 
       p.setCreatedAt(new Timestamp(System.currentTimeMillis()));
       p.setId(repo.insert(c, p));
-
       c.commit();
 
-      return ProductMapper.toResponse(p);
+      var response = ProductMapper.toResponse(p);
+
+      // Enviar notificacion
+      EventGridPublisherFactory.publishCrud(ENTITY, CrudAction.CREATED, String.valueOf(response.id()), response);
+
+      return response;
     }
   }
 
@@ -65,11 +72,15 @@ public class ProductService {
 
       Product p = ProductMapper.toModel(req);
       p.setId(id);
-
       repo.update(conn, p);
       conn.commit();
 
-      return ProductMapper.toResponse(repo.findById(conn, id));
+      var response = ProductMapper.toResponse(p);
+
+      // Enviar notificacion
+      EventGridPublisherFactory.publishCrud(ENTITY, CrudAction.UPDATED, String.valueOf(response.id()), response);
+
+      return response;
     }
   }
 
@@ -77,9 +88,12 @@ public class ProductService {
     try (Connection conn = Db.open()) {
       conn.setAutoCommit(false);
 
+      var toDelete = ProductMapper.toResponse(repo.findById(conn, id));
       repo.delete(conn, id);
-
       conn.commit();
+
+      // Enviar notificacion
+      EventGridPublisherFactory.publishCrud(ENTITY, CrudAction.DELETED, String.valueOf(toDelete.id()), toDelete);
     }
   }
 
